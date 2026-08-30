@@ -6,16 +6,6 @@ Mopidy-Subidy
     :target: https://pypi.org/project/Mopidy-Subidy/
     :alt: Latest PyPI version
 
-.. image:: https://img.shields.io/circleci/build/gh/Prior99/mopidy-subidy
-    :target: https://circleci.com/gh/Prior99/mopidy-subidy
-    :alt: CircleCI build status
-
-.. image:: https://img.shields.io/codecov/c/gh/Prior99/mopidy-subidy
-    :target: https://codecov.io/gh/Prior99/mopidy-subidy
-    :alt: Test coverage
-
-**This library is actively looking for maintainers to help out as I do not have the time or need to maintain this anymore. Please contact me if you feel that you could maintain this.**
-
 A Subsonic backend for Mopidy using `py-sonic
 <https://github.com/crustymonkey/py-sonic>`_.
 
@@ -29,7 +19,7 @@ Install the latest release from PyPI by running::
 
 Install the development version directly from this repo by running::
 
-    python3 -m pip install https://github.com/Prior99/mopidy-subidy/archive/master.zip
+    python3 -m pip install https://github.com/justinthegeek/mopidy-subidy/archive/master.zip
 
 See https://mopidy.com/ext/subidy/ for alternative installation methods.
 
@@ -81,5 +71,5 @@ Credits
 =======
 
 - Original author: `Frederick Gnodtke <https://github.com/Prior99>`__
-- Current maintainer: `Frederick Gnodtke <https://github.com/Prior99>`__
-- `Contributors <https://github.com/Prior99/mopidy-subidy/graphs/contributors>`_
+- Current maintainer: `justinthegeek <https://github.com/justinthegeek>`__
+- `Contributors <https://github.com/justinthegeek/mopidy-subidy/graphs/contributors>`_
