@@ -16,6 +16,8 @@ class SubidyBackend(pykka.ThreadingActor, backend.Backend):
             app_name=mopidy_subidy.SubidyExtension.dist_name,
             legacy_auth=subidy_config["legacy_auth"],
             api_version=subidy_config["api_version"],
+            cache_dir=mopidy_subidy.SubidyExtension.get_cache_dir(config),
+            cache_ttl=subidy_config["cache_ttl"] or 3600,
         )
         self.library = library.SubidyLibraryProvider(backend=self)
         self.playback = playback.SubidyPlaybackProvider(
@@ -23,3 +25,6 @@ class SubidyBackend(pykka.ThreadingActor, backend.Backend):
         )
         self.playlists = playlists.SubidyPlaylistsProvider(backend=self)
         self.uri_schemes = ["subidy"]
+
+    def on_stop(self):
+        self.subsonic_api.cache.save()

@@ -21,6 +21,7 @@ class SubidyExtension(ext.Extension):
         schema["password"] = config.Secret()
         schema["legacy_auth"] = config.Boolean(optional=True)
         schema["api_version"] = config.String(optional=True)
+        schema["cache_ttl"] = config.Integer(optional=True, minimum=0)
         return schema
 
     def setup(self, registry):

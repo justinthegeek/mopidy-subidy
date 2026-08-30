@@ -5,6 +5,7 @@ from urllib.parse import urlencode, urlparse
 import libsonic
 from mopidy.models import Album, Artist, Playlist, Ref, SearchResult, Track
 from mopidy_subidy import uri
+from mopidy_subidy.cache import SubidyCache
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +43,17 @@ def diritem_sort_key(item):
 
 class SubsonicApi:
     def __init__(
-        self, url, username, password, app_name, legacy_auth, api_version
+        self,
+        url,
+        username,
+        password,
+        app_name,
+        legacy_auth,
+        api_version,
+        cache_dir=None,
+        cache_ttl=3600,
     ):
+        self.cache = SubidyCache(cache_dir=cache_dir, ttl=cache_ttl)
         parsed = urlparse(url)
         self.port = (
             parsed.port
@@ -161,6 +171,7 @@ class SubsonicApi:
                 % response.get("status")
             )
             return None
+        self.cache.invalidate("getPlaylists")
         return response
 
     def delete_playlist_raw(self, playlist_id):
@@ -177,6 +188,8 @@ class SubsonicApi:
                 % response.get("status")
             )
             return None
+        self.cache.invalidate("getPlaylists")
+        self.cache.invalidate("getPlaylist", (playlist_id,))
         return response
 
     def save_playlist_raw(self, playlist_id, song_ids):
@@ -195,11 +208,15 @@ class SubsonicApi:
                 % response.get("status")
             )
             return None
+        self.cache.invalidate("getPlaylists")
+        self.cache.invalidate("getPlaylist", (playlist_id,))
         return response
 
     def get_raw_artists(self):
         try:
-            response = self.connection.getArtists()
+            response = self.cache.get_or_fetch(
+                "getArtists", (), self.connection.getArtists
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading list of artists."
@@ -226,7 +243,9 @@ class SubsonicApi:
 
     def get_raw_rootdirs(self):
         try:
-            response = self.connection.getIndexes()
+            response = self.cache.get_or_fetch(
+                "getIndexes", (), self.connection.getIndexes
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading list of rootdirs."
@@ -253,7 +272,9 @@ class SubsonicApi:
 
     def get_song_by_id(self, song_id):
         try:
-            response = self.connection.getSong(song_id)
+            response = self.cache.get_or_fetch(
+                "getSong", (song_id,), lambda: self.connection.getSong(song_id)
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading song by id."
@@ -273,7 +294,11 @@ class SubsonicApi:
 
     def get_album_by_id(self, album_id):
         try:
-            response = self.connection.getAlbum(album_id)
+            response = self.cache.get_or_fetch(
+                "getAlbum",
+                (album_id,),
+                lambda: self.connection.getAlbum(album_id),
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading album by id."
@@ -293,7 +318,11 @@ class SubsonicApi:
 
     def get_artist_by_id(self, artist_id):
         try:
-            response = self.connection.getArtist(artist_id)
+            response = self.cache.get_or_fetch(
+                "getArtist",
+                (artist_id,),
+                lambda: self.connection.getArtist(artist_id),
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading artist by id."
@@ -313,7 +342,9 @@ class SubsonicApi:
 
     def get_raw_playlists(self):
         try:
-            response = self.connection.getPlaylists()
+            response = self.cache.get_or_fetch(
+                "getPlaylists", (), self.connection.getPlaylists
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading list of playlists."
@@ -335,7 +366,11 @@ class SubsonicApi:
 
     def get_raw_playlist(self, playlist_id):
         try:
-            response = self.connection.getPlaylist(playlist_id)
+            response = self.cache.get_or_fetch(
+                "getPlaylist",
+                (playlist_id,),
+                lambda: self.connection.getPlaylist(playlist_id),
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading playlist."
@@ -351,7 +386,11 @@ class SubsonicApi:
 
     def get_raw_dir(self, parent_id):
         try:
-            response = self.connection.getMusicDirectory(parent_id)
+            response = self.cache.get_or_fetch(
+                "getMusicDirectory",
+                (parent_id,),
+                lambda: self.connection.getMusicDirectory(parent_id),
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when listing content of music directory."
@@ -371,7 +410,11 @@ class SubsonicApi:
 
     def get_raw_albums(self, artist_id):
         try:
-            response = self.connection.getArtist(artist_id)
+            response = self.cache.get_or_fetch(
+                "getArtist",
+                (artist_id,),
+                lambda: self.connection.getArtist(artist_id),
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading list of albums."
@@ -393,7 +436,11 @@ class SubsonicApi:
 
     def get_raw_songs(self, album_id):
         try:
-            response = self.connection.getAlbum(album_id)
+            response = self.cache.get_or_fetch(
+                "getAlbum",
+                (album_id,),
+                lambda: self.connection.getAlbum(album_id),
+            )
         except Exception:
             logger.warning(
                 "Connecting to subsonic failed when loading list of songs in album."
@@ -431,8 +478,12 @@ class SubsonicApi:
 
     def get_more_albums(self, ltype, size=MAX_LIST_RESULTS, offset=0):
         try:
-            response = self.connection.getAlbumList2(
-                ltype=ltype, size=size, offset=offset
+            response = self.cache.get_or_fetch(
+                "getAlbumList2",
+                (ltype, size, offset),
+                lambda: self.connection.getAlbumList2(
+                    ltype=ltype, size=size, offset=offset
+                ),
             )
         except Exception:
             logger.warning(
