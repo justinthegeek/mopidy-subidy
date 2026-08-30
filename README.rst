@@ -56,6 +56,10 @@ In addition, the following optional configuration values are supported:
 - ``api_version`` -- Defaults to ``1.14.0``, which is the version used by
   Subsonic 6.2.
 
+- ``cache_ttl`` -- Defaults to ``3600`` (seconds). Controls how long browse,
+  lookup, and playlist responses from the Subsonic server are cached before
+  being re-fetched. The cache is persisted to disk between Mopidy restarts.
+
 
 State of this plugin
 ====================

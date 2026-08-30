@@ -3,6 +3,17 @@ Changelog
 *********
 
 
+v1.2.0 (unreleased)
+===================
+
+- Fix crash on startup caused by using the removed ``pkg_resources`` API to
+  read the extension version; use ``importlib.metadata`` instead.
+
+- Add disk-persisted TTL caching for browse, lookup, and playlist requests to
+  the Subsonic server, with a configurable ``cache_ttl`` setting. Playlist
+  writes invalidate the relevant cached entries immediately.
+
+
 v1.0.0 (2020-03-13)
 ===================
 
